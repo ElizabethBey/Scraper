@@ -17,12 +17,12 @@ public class HttpRequestManager {
             } else {
                 String errorDescription = "Получен ответ не HTML: " + response.contentType();
                 ErrorLogger.logError(url, errorDescription);
-                return null;
+                throw new IOException(errorDescription);
             }
         } catch (IOException e) {
             System.err.println("Ошибка при обработке URL: " + url);
-            e.printStackTrace();
-            return null;
+            ErrorLogger.logError(url, e.getMessage());
+            throw new IOException("Ошибка при обработке URL: " + url, e);
         }
     }
 }

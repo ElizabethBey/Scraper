@@ -3,6 +3,7 @@ package org.example;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class Scraper {
     private ExecutorService executor;
@@ -12,11 +13,11 @@ public class Scraper {
     private DataStorage dataStorage;
     private String typeOfTask;
 
-    public Scraper(String typeOfTask) {
-        this.executor = Executors.newFixedThreadPool(10);
+    public Scraper(String typeOfTask, int threadPoolSize, int parserDelay) {
+        this.executor = Executors.newFixedThreadPool(threadPoolSize);
         this.requestManager = new HttpRequestManager();
         this.postPageParser = new PostPageParser();
-        this.newsPageParser = new NewsPageParser();
+        this.newsPageParser = new NewsPageParser(parserDelay);
         this.typeOfTask = typeOfTask;
         this.dataStorage = new DataStorage(typeOfTask.equals("parseUrl") ? "links.txt" : "posts.json");
     }
@@ -29,5 +30,13 @@ public class Scraper {
 
     public void shutdown() {
         executor.shutdown();
+        try {
+            if (!executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS)) {
+                System.err.println("Executor did not terminate in the given time.");
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        dataStorage.stopWriter();
     }
 }
