@@ -5,10 +5,10 @@ import java.io.IOException;
 
 public class ErrorLogger {
 
-    private static final String ERROR_LOG_FILE = "./error_urls.txt";
+    private static final String ERROR_LOG_FILE = "./errorLogger.txt";
 
     public static void logError(String url, String message) {
-        String logMessage = String.format("Thread: %s URL: %s /---/ Error: %s%n\n",
+        String logMessage = String.format("Thread: %s URL: %s /---/ Error: %s%n",
                 Thread.currentThread().getName(), url, message);
         try (FileWriter writer = new FileWriter(ERROR_LOG_FILE, true)) {
             writer.write(logMessage);

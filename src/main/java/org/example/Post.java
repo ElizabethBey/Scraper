@@ -13,6 +13,32 @@ public class Post {
         this.url = url;
     }
 
+    public Post() {}
+
+    public String getTitle() {
+        return title;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
     public String toJson() {
         try {
             ObjectMapper objectMapper = new ObjectMapper();

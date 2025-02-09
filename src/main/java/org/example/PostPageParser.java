@@ -1,17 +1,20 @@
 package org.example;
 
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 public class PostPageParser {
-    public Post parse(String html) {
-        if (html == null || html.isEmpty()) {
-            return null;
+    public Post parse(Document doc, String url) {
+        String title = doc.title();
+        String description = "";
+        Element mainElement = doc.selectFirst("main");
+        if (mainElement != null) {
+            Elements pTags = mainElement.getElementsByTag("p");
+            for (Element pTag : pTags) {
+                description += pTag.text() + " ";
+            }
         }
-        Document doc = Jsoup.parse(html);
-        String title = doc.select("h1.title").text();
-        String description = doc.select("div.description").text();
-
-        return new Post(title, description, doc.location());
+        return new Post(title, description, url);
     }
 }

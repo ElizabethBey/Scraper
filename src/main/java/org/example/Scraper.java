@@ -13,13 +13,13 @@ public class Scraper {
     private DataStorage dataStorage;
     private String typeOfTask;
 
-    public Scraper(String typeOfTask, int threadPoolSize, int parserDelay) {
+    public Scraper(String typeOfTask, int threadPoolSize) {
         this.executor = Executors.newFixedThreadPool(threadPoolSize);
         this.requestManager = new HttpRequestManager();
         this.postPageParser = new PostPageParser();
-        this.newsPageParser = new NewsPageParser(parserDelay);
+        this.newsPageParser = new NewsPageParser();
         this.typeOfTask = typeOfTask;
-        this.dataStorage = new DataStorage(typeOfTask.equals("parseUrl") ? "links.txt" : "posts.json");
+        this.dataStorage = new DataStorage(typeOfTask.equals("parseUrl") ? "links.txt" : "posts.txt");
     }
 
     public void startScraping(List<String> urls) {

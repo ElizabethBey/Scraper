@@ -8,7 +8,6 @@ public class ScraperTask implements Runnable {
     private PostPageParser postPageParser;
     private DataStorage dataStorage;
     private NewsPageParser newsPageParser;
-    private String typeOfTask;
     private ScrapingStrategy strategy;
 
     public ScraperTask(
@@ -22,7 +21,6 @@ public class ScraperTask implements Runnable {
         this.requestManager = requestManager;
         this.postPageParser = postPageParser;
         this.dataStorage = dataStorage;
-        this.typeOfTask = typeOfTask;
         this.newsPageParser = newsPageParser;
         if (typeOfTask.equals("post")) {
             this.strategy = new ScrapPostStrategy();
