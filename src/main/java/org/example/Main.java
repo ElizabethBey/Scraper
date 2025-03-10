@@ -7,8 +7,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
+    private static String postDir = "posts.txt";
+    private static String linksDir = "links.txt";
+    private static String indexDir = "index";
     private static List<String> postPageUrls = new ArrayList<>();
     private static List<Post> posts = new ArrayList<>();
+    private static Indexer indexer;
 
     public static void scrapPostPagesUrl() {
         System.out.println("Scrapping urls...");
@@ -23,10 +27,11 @@ public class Main {
     }
 
     public static void readPostPagesUrls(){
-        try (BufferedReader reader = new BufferedReader(new FileReader("links.txt"))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(linksDir))) {
             while (reader.ready()) {
                 postPageUrls.add(reader.readLine());
             }
+            System.out.println("Have read " + postPageUrls.size() + " urls");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -40,22 +45,23 @@ public class Main {
     }
 
     public static void readPosts(){
-        try (BufferedReader reader = new BufferedReader(new FileReader("posts.txt"))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(postDir))) {
             ObjectMapper objectMapper = new ObjectMapper();
             while (reader.ready()) {
                 Post post = objectMapper.readValue(reader.readLine(), Post.class);
                 posts.add(post);
             }
+            System.out.println("Have read " + posts.size() + " posts");
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 //        scrapPostPagesUrl();
-        readPostPagesUrls();
-        scrapPostPages();
+//        readPostPagesUrls();
+//        scrapPostPages();
         readPosts();
-        System.out.println(posts.size());
+        Indexer.createIndex(indexDir, posts);
     }
 }
