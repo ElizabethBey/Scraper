@@ -1,18 +1,22 @@
 package org.example;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.lucene.document.Document;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
+    private static final int MAX_RESULTS = 10;
     private static String postDir = "posts.txt";
     private static String linksDir = "links.txt";
+    private static String queriesDir = "queries.txt";
     private static String indexDir = "index";
     private static List<String> postPageUrls = new ArrayList<>();
     private static List<Post> posts = new ArrayList<>();
-    private static Indexer indexer;
+    private static List<String> queries = new ArrayList<>();
+    private static PostSearcher searcher;
 
     public static void scrapPostPagesUrl() {
         System.out.println("Scrapping urls...");
@@ -44,7 +48,7 @@ public class Main {
         scraper1.shutdown();
     }
 
-    public static void readPosts(){
+    public static void readPosts() {
         try (BufferedReader reader = new BufferedReader(new FileReader(postDir))) {
             ObjectMapper objectMapper = new ObjectMapper();
             while (reader.ready()) {
@@ -57,11 +61,36 @@ public class Main {
         }
     }
 
+    public static void readQueries(){
+        try (BufferedReader reader = new BufferedReader(new FileReader(queriesDir))) {
+            while (reader.ready()) {
+                queries.add(reader.readLine());
+            }
+            System.out.println("Have read " + queries.size() + " queries");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void printSearchResults(List<Post> searchResults) {
+        searchResults.forEach(post ->
+            System.out.println(String.format("Title: %s, URL: %s", post.getTitle() ,post.getUrl()))
+        );
+    }
+
     public static void main(String[] args) throws IOException {
 //        scrapPostPagesUrl();
 //        readPostPagesUrls();
 //        scrapPostPages();
         readPosts();
+        readQueries();
+
         Indexer.createIndex(indexDir, posts);
+        searcher = new PostSearcher(indexDir);
+        queries.forEach(query -> {
+                System.out.println(String.format("\nQuery: %s\n", query));
+                printSearchResults(searcher.searchByTitleAndDescription(query, MAX_RESULTS));
+            }
+        );
     }
 }
