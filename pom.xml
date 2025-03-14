@@ -34,6 +34,13 @@
             <artifactId>lucene-queryparser</artifactId>
             <version>8.11.2</version>
         </dependency>
+        <dependency>
+            <groupId>org.openpnp</groupId>
+            <artifactId>opencv</artifactId>
+            <version>4.11.0-0</version>
+            <scope>system</scope>
+            <systemPath>${env.OPENCV_DIR}</systemPath>
+        </dependency>
     </dependencies>
 
     <properties>
