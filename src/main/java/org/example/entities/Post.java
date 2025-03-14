@@ -1,4 +1,4 @@
-package org.example;
+package org.example.entities;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 

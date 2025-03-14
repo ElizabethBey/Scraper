@@ -1,4 +1,4 @@
-package org.example;
+package org.example.search;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.ru.RussianAnalyzer;
@@ -13,6 +13,7 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
+import org.example.entities.Post;
 
 import java.io.IOException;
 import java.nio.file.Paths;

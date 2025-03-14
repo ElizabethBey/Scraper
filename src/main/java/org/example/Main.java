@@ -1,7 +1,9 @@
 package org.example;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.lucene.document.Document;
+import org.example.entities.Post;
+import org.example.scraper.Scraper;
+import org.example.search.PostSearcher;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -16,18 +18,30 @@ public class Main {
     private static List<String> postPageUrls = new ArrayList<>();
     private static List<Post> posts = new ArrayList<>();
     private static List<String> queries = new ArrayList<>();
+    private static Scraper scraper = new Scraper(10);
     private static PostSearcher searcher;
 
     public static void scrapPostPagesUrl() {
-        System.out.println("Scrapping urls...");
         List<String> pageUlrList = new ArrayList<>();
         for (int i = 1; i <= 388; i++) {
             String link = "https://www.nkj.ru/news/?PAGEN_1=" + i;
             pageUlrList.add(link);
         }
-        Scraper scraperUrl = new Scraper("parseUrl", 10);
-        scraperUrl.startScraping(pageUlrList);
-        scraperUrl.shutdown();
+        System.out.println("Scrapping post pages urls...");
+        scraper.extractPostPageUrls(pageUlrList);
+        scraper.shutdown();
+    }
+
+    public static void scrapPosts() {
+        System.out.println("Scrapping post pages for posts...");
+        scraper.extractPosts(postPageUrls);
+        scraper.shutdown();
+    }
+
+    public static void scrapImgUrls() {
+        System.out.println("Scrapping post pages for img urls...");
+        scraper.extractImgUrls(postPageUrls);
+        scraper.shutdown();
     }
 
     public static void readPostPagesUrls(){
@@ -39,13 +53,6 @@ public class Main {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    public static void scrapPostPages() {
-        System.out.println("Scrapping post pages...");
-        Scraper scraper1 = new Scraper("post", 10);
-        scraper1.startScraping(postPageUrls);
-        scraper1.shutdown();
     }
 
     public static void readPosts() {
@@ -80,17 +87,18 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
 //        scrapPostPagesUrl();
-//        readPostPagesUrls();
+        readPostPagesUrls();
 //        scrapPostPages();
-        readPosts();
-        readQueries();
-
-        Indexer.createIndex(indexDir, posts);
-        searcher = new PostSearcher(indexDir);
-        queries.forEach(query -> {
-                System.out.println(String.format("\nQuery: %s\n", query));
-                printSearchResults(searcher.searchByTitleAndDescription(query, MAX_RESULTS));
-            }
-        );
+        scrapImgUrls();
+//        readPosts();
+//        readQueries();
+//
+//        Indexer.createIndex(indexDir, posts);
+//        searcher = new PostSearcher(indexDir);
+//        queries.forEach(query -> {
+//                System.out.println(String.format("\nQuery: %s\n", query));
+//                printSearchResults(searcher.searchByTitleAndDescription(query, MAX_RESULTS));
+//            }
+//        );
     }
 }

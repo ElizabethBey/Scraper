@@ -1,11 +1,15 @@
-package org.example;
+package org.example.util;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Random;
 
+import org.example.entities.Post;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 public class HttpRequestManager {
     private static final int MAX_RETRIES = 3;
