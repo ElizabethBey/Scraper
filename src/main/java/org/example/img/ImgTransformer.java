@@ -17,10 +17,12 @@ public class ImgTransformer {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
     }
     private List<Mat> images = new ArrayList<>();
+    private List<String> imagesUrls;
     private String outputDir;
 
     public ImgTransformer(List<String> imgUrls, String dir) {
         outputDir = dir;
+        imagesUrls = imgUrls;
         for (String imgUrl : imgUrls) {
             try {
                 images.add(loadImageFromUrl(imgUrl));
@@ -33,7 +35,12 @@ public class ImgTransformer {
     public void removeImagesBg() {
         for (int i = 0; i < images.size(); i++) {
             Mat foreground = removeBackground(images.get(i));
-            Imgcodecs.imwrite(String.format(outputDir + i + ".jpg"), foreground);
+            Mat bgrImage = new Mat();
+            Imgproc.cvtColor(foreground, bgrImage, Imgproc.COLOR_RGB2BGR);
+            
+            String imgUrl = imagesUrls.get(i);
+            String filename = imgUrl.substring(imgUrl.lastIndexOf('/') + 1);
+            Imgcodecs.imwrite(String.format(outputDir + filename), bgrImage);
         }
     }
 
@@ -42,42 +49,59 @@ public class ImgTransformer {
         BufferedImage image = ImageIO.read(url);
         if (image == null) return null;
 
-        byte[] pixels = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
+        int width = image.getWidth();
+        int height = image.getHeight();
+        int type = image.getType();
+
         Mat mat = new Mat(image.getHeight(), image.getWidth(), CvType.CV_8UC3);
+
+        BufferedImage convertedImage = image;
+        if (type != BufferedImage.TYPE_3BYTE_BGR) {
+            convertedImage = new BufferedImage(width, height, BufferedImage.TYPE_3BYTE_BGR);
+            convertedImage.getGraphics().drawImage(image, 0, 0, null);
+        }
+
+        byte[] pixels = ((DataBufferByte) convertedImage.getRaster().getDataBuffer()).getData();
+
+        int expectedSize = width * height * 3;
+        if (pixels.length != expectedSize) {
+            System.err.println("Ошибка: Неправильный размер массива пикселей.  Ожидалось: " + expectedSize + ", Фактически: " + pixels.length);
+            return null;
+        }
+
         mat.put(0, 0, pixels);
 
         Mat matRGB = new Mat();
         Imgproc.cvtColor(mat, matRGB, Imgproc.COLOR_BGR2RGB);
 
+        // Размытие для уменьшения шума
+        Imgproc.GaussianBlur(matRGB, matRGB, new Size(3,3), 0);
+
         return matRGB;
     }
 
     private Mat removeBackground(Mat image) {
-        // 1. Преобразование в HSV (или другое цветовое пространство, например Lab)
         Mat hsvImage = new Mat();
         Imgproc.cvtColor(image, hsvImage, Imgproc.COLOR_RGB2HSV);
 
-        // 2. Определение диапазона цветов фона (настройте эти значения под свои изображения)
-        //   Нижний предел
-        Scalar lowerBound = new Scalar(0, 0, 50);
-        //   Верхний предел
-        Scalar upperBound = new Scalar(360, 50, 255);
+        Scalar lowerBound = new Scalar(0, 0, 200);
+        Scalar upperBound = new Scalar(180, 30, 255);
 
-        // 3. Создание маски на основе диапазона цветов
         Mat mask = new Mat();
         Core.inRange(hsvImage, lowerBound, upperBound, mask);
 
-        // 4. Инвертирование маски (чтобы фон был черным, а передний план белым)
         Core.bitwise_not(mask, mask);
 
-        // 5. Морфологические операции (улучшение маски)
-        Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(5, 5));
+        Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(7, 7));
         Imgproc.morphologyEx(mask, mask, Imgproc.MORPH_OPEN, kernel);
         Imgproc.morphologyEx(mask, mask, Imgproc.MORPH_CLOSE, kernel);
 
-        // 6. Извлечение переднего плана
         Mat foreground = new Mat();
         image.copyTo(foreground, mask);
+
+        Mat edges = new Mat();
+        Imgproc.Canny(foreground, edges, 100, 200);
+        Core.bitwise_or(mask, edges, mask);
 
         return foreground;
     }
