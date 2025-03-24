@@ -5,11 +5,11 @@ import org.example.entities.Post;
 import org.example.img.ImgTransformer;
 import org.example.scraper.Scraper;
 import org.example.search.Indexer;
-import org.example.search.PostSearcher;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 
 public class Main {
     private static final int MAX_RESULTS = 10;
@@ -17,7 +17,6 @@ public class Main {
     private static String linksDir = "links.txt";
     private static String queriesDir = "queries.txt";
     private static String imgDir = "img.txt";
-    private static String synonymsDir = "synonyms.txt";
     private static String indexDir = "index";
     private static String outputImgDir = "outputImg/";
 
@@ -25,6 +24,11 @@ public class Main {
     private static List<String> imgUrls = new ArrayList<>();
     private static List<Post> posts = new ArrayList<>();
     private static List<String> queries = new ArrayList<>();
+    private static List<Post> testPosts = List.of(
+            new Post("1 период", "период", "url"),
+            new Post("2 периода", "периода", "url"),
+            new Post("3 и кот", "и кот", "url")
+    );
 
     private static Scraper scraper = new Scraper(10);
     private static Indexer indexer;
@@ -87,9 +91,13 @@ public class Main {
     }
 
     public static void printSearchResults(List<Post> searchResults) {
-        searchResults.forEach(post ->
-            System.out.println(String.format("Title: %s, URL: %s", post.getTitle() ,post.getUrl()))
-        );
+        IntStream.range(0, searchResults.size())
+                .forEach(index -> {
+                    Post post = searchResults.get(index);
+                    Integer num = index + 1;
+                    System.out.print("\n" + num + ") ");
+                    post.printInfo();
+                });
     }
 
     public static void main(String[] args) throws IOException {
@@ -106,12 +114,14 @@ public class Main {
 //        imageTransformer = new ImgTransformer(imgUrls.subList(0, 100), outputImgDir);
 //        imageTransformer.removeImagesBg();
 
+        String bold = "\033[1m";
+        String reset = "\033[0m";
         // read posts and queries, make index and do search
         posts = readPosts();
         queries = readFileData(queriesDir);
-        indexer = new Indexer(indexDir, synonymsDir, posts);
+        indexer = new Indexer(indexDir, posts);
         queries.forEach(query -> {
-                System.out.println(String.format("\nQuery: %s\n", query));
+                System.out.println(String.format(bold + "\nQuery: %s" + reset, query));
                 printSearchResults(indexer.searchByTitleAndDescription(query, MAX_RESULTS));
             }
         );
